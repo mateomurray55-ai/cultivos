@@ -1,0 +1,1400 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2f7a48">
+  <meta name="application-name" content="Cultivos de Agronomia">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./app-icon.svg" type="image/svg+xml">
+  <title>Cultivos de Agronomia</title>
+  <style>
+    :root {
+      --ink: #18201b;
+      --muted: #5f6a63;
+      --line: #d8ded7;
+      --panel: #ffffff;
+      --field: #f4f2e9;
+      --green: #2f7a48;
+      --yellow: #d9a928;
+      --red: #b8473b;
+      --blue: #35728d;
+      --shadow: 0 16px 42px rgba(24, 32, 27, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--field);
+    }
+
+    .hero {
+      min-height: 44vh;
+      display: grid;
+      align-items: end;
+      padding: 32px 5vw 28px;
+      background:
+        linear-gradient(180deg, rgba(14, 22, 15, .24), rgba(14, 22, 15, .78)),
+        radial-gradient(circle at 78% 22%, rgba(255,255,255,.22) 0 9%, transparent 10%),
+        linear-gradient(135deg, #7a8d30 0%, #2f7a48 48%, #1d3c2a 100%);
+      color: #fff;
+    }
+
+    .hero-inner {
+      max-width: 1060px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      max-width: 850px;
+      font-size: clamp(2.1rem, 5vw, 4.6rem);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: rgba(255,255,255,.9);
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      line-height: 1.55;
+    }
+
+    .install-button {
+      display: none;
+      min-height: 42px;
+      margin-top: 18px;
+      border: 1px solid rgba(255,255,255,.44);
+      border-radius: 8px;
+      padding: 0 14px;
+      color: #fff;
+      background: rgba(0,0,0,.28);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .install-button.is-visible {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px 18px 46px;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: grid;
+      gap: 14px;
+      padding: 16px 0;
+      background: rgba(244, 242, 233, .94);
+      backdrop-filter: blur(10px);
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .search {
+      min-height: 48px;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 14px;
+      color: var(--ink);
+      background: #fff;
+      font-size: 1rem;
+      box-shadow: 0 8px 26px rgba(24, 32, 27, .08);
+    }
+
+    .count {
+      min-width: 96px;
+      min-height: 48px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 13px;
+      color: var(--ink);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .filter[aria-pressed="true"] {
+      color: #fff;
+      border-color: var(--green);
+      background: var(--green);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .season-guide {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 4px 0 18px;
+    }
+
+    .season-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(24, 32, 27, .06);
+    }
+
+    .season-card h2 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+
+    .season-card strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--green);
+      font-size: .86rem;
+    }
+
+    .season-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.42;
+    }
+
+    .card {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+      width: 100%;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: inherit;
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+      box-shadow: 0 8px 24px rgba(24, 32, 27, .06);
+      transform: translateY(0) scale(1);
+      transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+      will-change: transform;
+    }
+
+    .card:hover,
+    .card:focus-visible,
+    .card:focus-within {
+      border-color: rgba(47, 122, 72, .45);
+      box-shadow: 0 18px 42px rgba(24, 32, 27, .16);
+      outline: none;
+      transform: translateY(-7px) scale(1.015);
+    }
+
+    .crop-art {
+      position: relative;
+      min-height: 104px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--c1), var(--c2));
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .crop-art::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      background: linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.58));
+      transition: background .22s ease;
+    }
+
+    .crop-art img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1);
+      transition: transform .35s ease, filter .35s ease;
+    }
+
+    .card:hover .crop-art img,
+    .card:focus-within .crop-art img {
+      filter: saturate(1.08) contrast(1.03);
+      transform: scale(1.035);
+    }
+
+    .card:hover .crop-art::after,
+    .card:focus-within .crop-art::after {
+      background: linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.66));
+    }
+
+    .crop-art small {
+      position: relative;
+      z-index: 1;
+      margin-left: auto;
+      padding: 6px 8px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.34);
+      max-width: 118px;
+      text-align: right;
+      color: rgba(255,255,255,.9);
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: .73rem;
+      line-height: 1.25;
+    }
+
+    .content {
+      padding: 15px;
+    }
+
+    .crop-title {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 10px;
+      align-items: center;
+      margin: 0 0 9px;
+    }
+
+    .title-image {
+      width: 44px;
+      height: 44px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--c1), var(--c2));
+      box-shadow: 0 7px 18px rgba(24, 32, 27, .16);
+      object-fit: cover;
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+    .card:hover .title-image,
+    .card:focus-within .title-image {
+      box-shadow: 0 10px 22px rgba(24, 32, 27, .22);
+      transform: scale(1.08);
+    }
+
+    .title-text {
+      min-width: 0;
+    }
+
+    .content h2 {
+      margin: 0;
+      font-size: 1.12rem;
+      letter-spacing: 0;
+      line-height: 1.15;
+    }
+
+    .title-text small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 800;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .content p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: .95rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card,
+      .crop-art::after,
+      .crop-art img,
+      .title-image {
+        transition: none;
+      }
+
+      .card:hover,
+      .card:focus-within,
+      .card:hover .crop-art img,
+      .card:focus-within .crop-art img,
+      .card:hover .title-image,
+      .card:focus-within .title-image {
+        transform: none;
+      }
+    }
+
+    .empty {
+      display: none;
+      padding: 42px 18px;
+      color: var(--muted);
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.58);
+    }
+
+    .footer-note {
+      margin: 24px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: .92rem;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(12, 18, 14, .68);
+    }
+
+    .modal.is-open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(820px, 100%);
+      max-height: min(88vh, 820px);
+      overflow: auto;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-hero {
+      position: relative;
+      min-height: 210px;
+      display: flex;
+      align-items: flex-end;
+      padding: 18px;
+      overflow: hidden;
+      color: #fff;
+      background: linear-gradient(135deg, var(--green), var(--yellow));
+    }
+
+    .modal-hero img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .modal-hero::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      background: linear-gradient(180deg, rgba(0,0,0,.1), rgba(0,0,0,.72));
+    }
+
+    .modal-heading {
+      position: relative;
+      z-index: 1;
+      max-width: 660px;
+    }
+
+    .modal-heading h2 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 4vw, 3rem);
+      line-height: 1;
+    }
+
+    .modal-heading p {
+      margin: 0;
+      color: rgba(255,255,255,.9);
+      line-height: 1.45;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 50%;
+      color: #fff;
+      background: rgba(0,0,0,.45);
+      cursor: pointer;
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+
+    .modal-body {
+      display: grid;
+      gap: 16px;
+      padding: 18px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .detail-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcf8;
+    }
+
+    .detail-item strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: .78rem;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+
+    .detail-item span {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .modal-section h3 {
+      margin: 0 0 7px;
+      font-size: 1.05rem;
+    }
+
+    .modal-section p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 650px) {
+      .hero {
+        min-height: 38vh;
+        padding: 28px 18px 22px;
+      }
+
+      main {
+        padding-inline: 12px;
+      }
+
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .count {
+        justify-self: start;
+      }
+
+      .modal {
+        padding: 10px;
+      }
+
+      .modal-hero {
+        min-height: 170px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>Cultivos de agronomia</h1>
+      <p>Catalogo resumido de cultivos importantes para produccion agricola: cereales, oleaginosas, legumbres, hortalizas, frutales, industriales, forrajeras, gramineas forrajeras, leguminosas forrajeras, raices y tuberculos.</p>
+      <button class="install-button" id="installButton" type="button">Instalar aplicacion</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="toolbar" aria-label="Herramientas del catalogo">
+      <div class="search-row">
+        <input class="search" id="search" type="search" placeholder="Buscar cultivo, uso o grupo..." aria-label="Buscar cultivo">
+        <div class="count" id="count">0 cultivos</div>
+      </div>
+      <div class="filters" id="filters" aria-label="Filtrar por grupo"></div>
+    </section>
+
+    <section class="season-guide" aria-label="Calendario orientativo de siembra">
+      <article class="season-card">
+        <h2>Otono</h2>
+        <strong>20 de marzo a 20 de junio</strong>
+        <p>Trigo, cebada, avena, centeno, colza, arveja, lenteja, garbanzo, haba, vicia, alfalfa, treboles y verdeos de invierno.</p>
+      </article>
+      <article class="season-card">
+        <h2>Invierno</h2>
+        <strong>21 de junio a 20 de septiembre</strong>
+        <p>Ajo, cebolla, hortalizas de hoja, brassicas, algunas pasturas templadas y siembras tardias de cultivos invernales en zonas aptas.</p>
+      </article>
+      <article class="season-card">
+        <h2>Primavera</h2>
+        <strong>21 de septiembre a 20 de diciembre</strong>
+        <p>Maiz, soja, girasol, sorgo, arroz, mani, algodon, poroto, zapallo, tomate, pimiento, melon, sandia y cultivos estivales.</p>
+      </article>
+      <article class="season-card">
+        <h2>Verano</h2>
+        <strong>21 de diciembre a 20 de marzo</strong>
+        <p>Soja de segunda, maiz tardio, sorgo, mijo, moha, caupi, hortalizas de verano y cultivos tropicales o subtropicales con riego.</p>
+      </article>
+    </section>
+
+    <section class="grid" id="grid" aria-live="polite"></section>
+    <div class="empty" id="empty">No se encontraron cultivos con ese filtro.</div>
+
+    <p class="footer-note">Nota: el listado reune cultivos agronomicos comunes a escala mundial y regional. La importancia de cada cultivo cambia segun clima, suelo, mercado y sistema productivo.</p>
+  </main>
+
+  <div class="modal" id="cropModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="modal-hero" id="modalHero">
+        <img id="modalImage" alt="">
+        <button class="modal-close" type="button" id="modalClose" aria-label="Cerrar">×</button>
+        <div class="modal-heading">
+          <h2 id="modalTitle"></h2>
+          <p id="modalSummary"></p>
+        </div>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const crops = [
+      { name: "Trigo", group: "Cereales", desc: "Cereal de clima templado usado para harina, pan, pastas y alimentos balanceados." },
+      { name: "Maiz", group: "Cereales", desc: "Cereal muy productivo destinado a grano, forraje, silaje, almidon, aceite y bioetanol." },
+      { name: "Arroz", group: "Cereales", desc: "Cultivo basico de zonas humedas o bajo riego; produce grano para consumo directo." },
+      { name: "Cebada", group: "Cereales", desc: "Cereal usado en malteria, cerveza, forraje y alimentacion animal." },
+      { name: "Avena", group: "Cereales", desc: "Cereal rustico para grano, forraje, cobertura y alimentos de alto contenido de fibra." },
+      { name: "Sorgo", group: "Cereales", desc: "Cereal tolerante a sequia, apto para grano, silaje, pastoreo y biocombustibles." },
+      { name: "Centeno", group: "Cereales", desc: "Cereal resistente al frio y a suelos pobres, usado en panificacion, forraje y cobertura." },
+      { name: "Mijo", group: "Cereales", desc: "Cereal de ciclo corto y alta tolerancia a sequia, comun en regiones semiaridas." },
+      { name: "Quinoa", group: "Pseudocereales", desc: "Pseudocereal andino de alto valor nutritivo, adaptable a ambientes frios y salinos." },
+      { name: "Amaranto", group: "Pseudocereales", desc: "Pseudocereal con semillas ricas en proteina, usado tambien como hoja comestible." },
+
+      { name: "Soja", group: "Oleaginosas", desc: "Leguminosa oleaginosa clave para aceite, harina proteica, biodiesel y rotacion agricola." },
+      { name: "Girasol", group: "Oleaginosas", desc: "Cultivo oleaginoso de semillas con alto contenido de aceite comestible." },
+      { name: "Colza / Canola", group: "Oleaginosas", desc: "Oleaginosa de clima fresco usada para aceite, biodiesel y harina proteica." },
+      { name: "Mani", group: "Oleaginosas", desc: "Leguminosa de grano subterraneo usada para consumo directo, aceite y confiteria." },
+      { name: "Sesamo", group: "Oleaginosas", desc: "Oleaginosa de semillas pequenas, apreciada por su aceite y uso alimentario." },
+      { name: "Lino", group: "Oleaginosas", desc: "Cultivo para semilla oleaginosa, fibra textil y productos industriales." },
+      { name: "Cartamo", group: "Oleaginosas", desc: "Oleaginosa tolerante a sequia, cultivada por aceite y colorantes naturales." },
+
+      { name: "Poroto / Frijol", group: "Legumbres", desc: "Legumbre de consumo humano con muchas variedades; aporta proteina y fija nitrogeno." },
+      { name: "Arveja", group: "Legumbres", desc: "Leguminosa de grano verde o seco, usada en alimentacion humana y animal." },
+      { name: "Lenteja", group: "Legumbres", desc: "Legumbre de ciclo fresco, apreciada por su proteina y buena conservacion." },
+      { name: "Garbanzo", group: "Legumbres", desc: "Leguminosa de clima seco o templado, importante en harinas, guisos y pastas." },
+      { name: "Haba", group: "Legumbres", desc: "Leguminosa de clima fresco para consumo verde, grano seco y abono verde." },
+      { name: "Altramuz", group: "Legumbres", desc: "Leguminosa proteica usada en alimentacion animal, humana y mejora de suelos." },
+
+      { name: "Papa", group: "Raices y tuberculos", desc: "Tuberculo de alto rendimiento, base alimentaria y materia prima industrial." },
+      { name: "Batata / Camote", group: "Raices y tuberculos", desc: "Raiz tuberosa energetica, tolerante al calor, usada fresca o procesada." },
+      { name: "Yuca / Mandioca", group: "Raices y tuberculos", desc: "Raiz tropical rica en almidon, importante para harina, consumo y uso industrial." },
+      { name: "Remolacha azucarera", group: "Industriales", desc: "Raiz cultivada por su contenido de azucar y subproductos para alimentacion animal." },
+
+      { name: "Algodon", group: "Industriales", desc: "Cultivo textil de fibra natural; sus semillas tambien aportan aceite y harina." },
+      { name: "Cana de azucar", group: "Industriales", desc: "Graminea tropical para azucar, alcohol, bioetanol y energia a partir de bagazo." },
+      { name: "Tabaco", group: "Industriales", desc: "Cultivo de hojas con manejo intensivo, destinado a la industria tabacalera." },
+      { name: "Cafe", group: "Industriales", desc: "Cultivo perenne tropical de granos usados para bebida de alto valor comercial." },
+      { name: "Cacao", group: "Industriales", desc: "Arbol tropical cuyas semillas se procesan para chocolate y derivados." },
+      { name: "Te", group: "Industriales", desc: "Arbusto perenne del que se cosechan brotes y hojas para infusion." },
+      { name: "Yerba mate", group: "Industriales", desc: "Cultivo perenne regional usado para infusion, con manejo de poda y cosecha." },
+
+      { name: "Tomate", group: "Hortalizas", desc: "Hortaliza de fruto para consumo fresco e industria de salsas, pulpas y conservas." },
+      { name: "Pimiento", group: "Hortalizas", desc: "Hortaliza de fruto dulce o picante, cultivada a campo o bajo cubierta." },
+      { name: "Cebolla", group: "Hortalizas", desc: "Bulbo de gran consumo, con variedades adaptadas a distintas duraciones de dia." },
+      { name: "Ajo", group: "Hortalizas", desc: "Bulbo aromatico usado como condimento, con buena conservacion postcosecha." },
+      { name: "Zanahoria", group: "Hortalizas", desc: "Raiz comestible rica en carotenoides, cultivada en suelos sueltos y profundos." },
+      { name: "Lechuga", group: "Hortalizas", desc: "Hortaliza de hoja de ciclo corto, comun en produccion intensiva y fresca." },
+      { name: "Espinaca", group: "Hortalizas", desc: "Hortaliza de hoja de clima fresco, valorada por minerales y vitaminas." },
+      { name: "Repollo", group: "Hortalizas", desc: "Crucifera de hoja compacta para consumo fresco, cocido o fermentado." },
+      { name: "Brocoli", group: "Hortalizas", desc: "Crucifera cosechada por su inflorescencia, de alto valor nutricional." },
+      { name: "Pepino", group: "Hortalizas", desc: "Cucurbitacea de fruto fresco, frecuente en sistemas bajo cubierta." },
+      { name: "Zapallo / Calabaza", group: "Hortalizas", desc: "Cucurbitacea de fruto grande, usada para consumo fresco, semillas y procesamiento." },
+
+      { name: "Ryegrass", group: "Forrajeras", desc: "Graminea de crecimiento rapido para pasturas, verdeos y mezclas forrajeras." },
+      { name: "Festuca", group: "Forrajeras", desc: "Graminea perenne resistente, usada en pasturas de clima templado." },
+      { name: "Pasto elefante", group: "Forrajeras", desc: "Forrajera tropical de gran biomasa, util para corte, ensilaje y pastoreo controlado." },
+
+      { name: "Ryegrass anual", group: "Gramineas", desc: "Graminea de ciclo corto y alta calidad, usada como verdeo de invierno, pastoreo y silaje." },
+      { name: "Ryegrass perenne", group: "Gramineas", desc: "Graminea templada persistente, muy usada en pasturas intensivas y mezclas con treboles." },
+      { name: "Festuca alta", group: "Gramineas", desc: "Graminea perenne rustica, resistente a frio, sequia moderada y pastoreo frecuente." },
+      { name: "Pasto ovillo", group: "Gramineas", desc: "Graminea templada de buena calidad forrajera, usada en mezclas con leguminosas." },
+      { name: "Falaris", group: "Gramineas", desc: "Graminea perenne de clima templado, productiva en invierno y util para pasturas permanentes." },
+      { name: "Cebadilla criolla", group: "Gramineas", desc: "Graminea templada de buena palatabilidad, usada en pasturas y campos naturales mejorados." },
+      { name: "Bromo", group: "Gramineas", desc: "Graminea forrajera templada, tolerante a frio y adecuada para pastoreo en ambientes secos." },
+      { name: "Timothy", group: "Gramineas", desc: "Graminea de clima fresco, valorada para heno de calidad y pasturas en zonas humedas." },
+      { name: "Poa de los prados", group: "Gramineas", desc: "Graminea perenne densa, usada en pasturas frias, cesped y cobertura de suelo." },
+      { name: "Agropiro alargado", group: "Gramineas", desc: "Graminea resistente a suelos salinos, frio y sequia, util para recuperar ambientes dificiles." },
+      { name: "Agropiro criollo", group: "Gramineas", desc: "Graminea perenne adaptada a zonas secas, usada para pastoreo extensivo y estabilizacion del suelo." },
+      { name: "Pasto lloron", group: "Gramineas", desc: "Graminea perenne resistente a sequia, comun en regiones semiaridas para pastoreo y conservacion." },
+      { name: "Bermuda grass", group: "Gramineas", desc: "Graminea rastrera resistente al pisoteo, usada en pasturas, suelos deportivos y control de erosion." },
+      { name: "Estrella africana", group: "Gramineas", desc: "Graminea tropical rastrera de alta cobertura, apta para pastoreo intensivo en climas calidos." },
+      { name: "Grama rhodes", group: "Gramineas", desc: "Graminea perenne tolerante a sequia y salinidad, comun en zonas calidas y sistemas pastoriles." },
+      { name: "Kikuyo", group: "Gramineas", desc: "Graminea perenne agresiva y densa, usada en pastoreo intensivo y cobertura en climas templado-calidos." },
+      { name: "Pasto pangola", group: "Gramineas", desc: "Graminea tropical estolonifera, usada en pasturas por su palatabilidad y buena cobertura." },
+      { name: "Pasto bahia", group: "Gramineas", desc: "Graminea perenne rustica, tolerante a suelos pobres y pastoreo moderado en zonas calidas." },
+      { name: "Paspalum dilatatum", group: "Gramineas", desc: "Graminea perenne de ambientes humedos, apreciada para pasturas naturales y mejoradas." },
+      { name: "Paspalum notatum", group: "Gramineas", desc: "Graminea rastrera y persistente, usada en pastoreo, cobertura y control de erosion." },
+      { name: "Brachiaria brizantha", group: "Gramineas", desc: "Graminea tropical perenne de alta rusticidad, comun en pasturas ganaderas de carne." },
+      { name: "Brachiaria decumbens", group: "Gramineas", desc: "Graminea tropical de buena cobertura, usada para pastoreo en suelos acidos y de baja fertilidad." },
+      { name: "Brachiaria humidicola", group: "Gramineas", desc: "Graminea tropical adaptada a suelos humedos, acidos o de baja fertilidad." },
+      { name: "Brachiaria ruziziensis", group: "Gramineas", desc: "Graminea tropical de buena calidad, usada en pasturas, cobertura y rotaciones agricolas." },
+      { name: "Panicum maximum", group: "Gramineas", desc: "Graminea tropical de alta produccion de biomasa, apta para pastoreo rotativo y corte." },
+      { name: "Mombaza", group: "Gramineas", desc: "Variedad de Panicum de gran porte, usada en sistemas intensivos de pastoreo rotativo." },
+      { name: "Tanzania", group: "Gramineas", desc: "Variedad de Panicum de buena calidad y rebrote, apta para pastoreo y corte." },
+      { name: "Gatton panic", group: "Gramineas", desc: "Graminea tropical o subtropical tolerante a calor, usada para pasturas permanentes." },
+      { name: "Setaria", group: "Gramineas", desc: "Graminea tropical o subtropical de crecimiento estival, destinada a pastoreo y reserva forrajera." },
+      { name: "Digitaria", group: "Gramineas", desc: "Graminea de zonas calidas, valorada para pasturas por su persistencia y tolerancia al manejo." },
+      { name: "Pasto miel", group: "Gramineas", desc: "Graminea subtropical palatable, frecuente en campos naturales y pasturas de buena humedad." },
+      { name: "Pasto elefante", group: "Gramineas", desc: "Graminea tropical de muy alta biomasa, usada para corte, ensilaje, banco forrajero y pastoreo controlado." },
+      { name: "King grass", group: "Gramineas", desc: "Graminea de corte de gran porte, usada como forraje fresco, picado o ensilado." },
+      { name: "Maralfalfa", group: "Gramineas", desc: "Graminea de corte de alta produccion, empleada en sistemas intensivos de alimentacion animal." },
+      { name: "Guinea grass", group: "Gramineas", desc: "Graminea tropical productiva y palatable, usada en pastoreo rotativo y reservas forrajeras." },
+      { name: "Guatemala grass", group: "Gramineas", desc: "Graminea tropical robusta, usada principalmente para corte y suministro fresco." },
+      { name: "Maiz forrajero", group: "Gramineas", desc: "Graminea anual de alta energia, muy usada para silaje y dietas de bovinos." },
+      { name: "Sorgo forrajero", group: "Gramineas", desc: "Graminea anual tolerante a sequia, destinada a pastoreo, corte, diferido y silaje." },
+      { name: "Avena forrajera", group: "Gramineas", desc: "Graminea anual de invierno, usada como verdeo, heno, pastoreo y cobertura." },
+      { name: "Cebada forrajera", group: "Gramineas", desc: "Graminea de ciclo fresco, util como verdeo temprano, pastoreo y grano forrajero." },
+      { name: "Triticale forrajero", group: "Gramineas", desc: "Hibrido cereal forrajero rustico, usado para pastoreo, heno, silaje y cobertura." },
+      { name: "Moha", group: "Gramineas", desc: "Graminea anual de verano, de ciclo corto, usada para heno, pastoreo y reserva rapida." },
+      { name: "Mijo perla", group: "Gramineas", desc: "Graminea anual estival tolerante a calor y sequia, usada para pastoreo y corte." },
+      { name: "Teff", group: "Gramineas", desc: "Graminea anual de ciclo corto, fina y palatable, usada para heno de buena calidad." },
+      { name: "Tripsacum", group: "Gramineas", desc: "Graminea perenne emparentada con el maiz, usada como forraje de corte en zonas tropicales." },
+
+      { name: "Alfalfa", group: "Leguminosas forrajeras", desc: "Leguminosa perenne de alto valor proteico, usada para heno, pastoreo, silaje y rotaciones." },
+      { name: "Trebol rojo", group: "Leguminosas forrajeras", desc: "Leguminosa bianual o perenne corta, muy productiva en climas templados y suelos fertiles." },
+      { name: "Trebol blanco", group: "Leguminosas forrajeras", desc: "Leguminosa rastrera y persistente, ideal para mezclas con gramineas en pastoreo." },
+      { name: "Trebol subterraneo", group: "Leguminosas forrajeras", desc: "Leguminosa anual de resiembra natural, adaptada a sistemas pastoriles mediterraneos." },
+      { name: "Lotus corniculatus", group: "Leguminosas forrajeras", desc: "Leguminosa perenne tolerante a suelos moderadamente acidos o humedos, con bajo riesgo de empaste." },
+      { name: "Lotus tenuis", group: "Leguminosas forrajeras", desc: "Leguminosa adaptada a bajos dulces y suelos con limitantes, util en mejoramiento de campos naturales." },
+      { name: "Vicia", group: "Leguminosas forrajeras", desc: "Leguminosa anual de invierno usada como verdeo, cobertura, abono verde y forraje proteico." },
+      { name: "Melilotus", group: "Leguminosas forrajeras", desc: "Leguminosa rustica para suelos alcalinos o salinos, usada como forraje y mejoradora del suelo." },
+      { name: "Esparceta", group: "Leguminosas forrajeras", desc: "Leguminosa perenne de buena palatabilidad, apta para heno y pastoreo en zonas templadas secas." },
+      { name: "Serradella", group: "Leguminosas forrajeras", desc: "Leguminosa anual adaptada a suelos acidos y arenosos, usada en pasturas y coberturas." },
+
+      { name: "Vid", group: "Frutales", desc: "Cultivo perenne para uva de mesa, pasas, jugos y vinificacion." },
+      { name: "Manzano", group: "Frutales", desc: "Frutal templado de alta calidad comercial, manejado con poda y raleo." },
+      { name: "Peral", group: "Frutales", desc: "Frutal de clima templado para consumo fresco e industria." },
+      { name: "Duraznero", group: "Frutales", desc: "Frutal de carozo con variedades para fresco, conserva y deshidratado." },
+      { name: "Citrus", group: "Frutales", desc: "Grupo de naranjas, limones, mandarinas y pomelos para fresco e industria." },
+      { name: "Banano", group: "Frutales", desc: "Cultivo tropical de fruto energetico, producido todo el ano en climas calidos." },
+      { name: "Palta / Aguacate", group: "Frutales", desc: "Frutal subtropical de alto valor, sensible a heladas y excesos de agua." },
+      { name: "Olivo", group: "Frutales", desc: "Frutal mediterraneo para aceituna de mesa y aceite, tolerante a sequia." },
+      { name: "Ciruela", group: "Frutales", desc: "Frutal de carozo para consumo fresco, deshidratado, dulces y conservas." },
+      { name: "Cerezo", group: "Frutales", desc: "Frutal templado de alto valor, sensible al manejo de floracion, heladas y cosecha." },
+      { name: "Damasco / Albaricoque", group: "Frutales", desc: "Frutal de carozo usado para fresco, mermeladas, deshidratados y conservas." },
+      { name: "Membrillo", group: "Frutales", desc: "Frutal rustico usado sobre todo para dulces, jaleas y portainjertos." },
+      { name: "Granado", group: "Frutales", desc: "Frutal adaptado a climas secos, cultivado por sus frutos antioxidantes." },
+      { name: "Higuera", group: "Frutales", desc: "Frutal mediterraneo de bajo requerimiento hidrico, usado para higos frescos o secos." },
+      { name: "Kiwi", group: "Frutales", desc: "Frutal trepador de clima templado, con alta demanda de poda, soporte y riego." },
+      { name: "Mango", group: "Frutales tropicales", desc: "Frutal tropical de alto valor comercial, consumido fresco, en pulpas y deshidratado." },
+      { name: "Papaya", group: "Frutales tropicales", desc: "Frutal tropical de crecimiento rapido, valorado por fruta fresca y enzimas." },
+      { name: "Anana / Piña", group: "Frutales tropicales", desc: "Cultivo tropical de fruto compuesto, usado fresco, en conserva y jugos." },
+      { name: "Maracuya", group: "Frutales tropicales", desc: "Frutal trepador tropical, cultivado por su pulpa aromatica para jugos y postres." },
+      { name: "Guayaba", group: "Frutales tropicales", desc: "Frutal tropical rustico, destinado a fresco, dulces, pulpas y bebidas." },
+      { name: "Litchi", group: "Frutales tropicales", desc: "Frutal subtropical de fruto dulce, sensible a heladas y a manejo de floracion." },
+      { name: "Coco", group: "Frutales tropicales", desc: "Palmera tropical usada para agua, pulpa, aceite, fibra y derivados industriales." },
+      { name: "Datil", group: "Frutales tropicales", desc: "Palmera de zonas aridas cultivada por frutos dulces de larga conservacion." },
+      { name: "Frutilla / Fresa", group: "Frutales menores", desc: "Cultivo intensivo de fruto pequeño, usado fresco, congelado y en dulces." },
+      { name: "Arandano", group: "Frutales menores", desc: "Baya de alto valor, requiere suelos acidos, riego cuidadoso y cosecha delicada." },
+      { name: "Frambuesa", group: "Frutales menores", desc: "Baya de clima templado, usada fresca, congelada, en mermeladas y reposteria." },
+      { name: "Mora", group: "Frutales menores", desc: "Baya de arbusto o zarza, destinada a fresco, pulpas, dulces y congelados." },
+      { name: "Grosella", group: "Frutales menores", desc: "Baya de clima fresco, usada en jugos, jaleas y productos procesados." },
+      { name: "Almendro", group: "Frutos secos", desc: "Frutal de nuez de alto valor, adaptado a climas secos con buena floracion." },
+      { name: "Nogal", group: "Frutos secos", desc: "Arbol productor de nueces, requiere manejo de poda, riego y cosecha mecanizada." },
+      { name: "Avellano", group: "Frutos secos", desc: "Frutal de nuez usado en confiteria, aceites y alimentos procesados." },
+      { name: "Pistacho", group: "Frutos secos", desc: "Cultivo de zonas secas y frias en invierno, de alto valor comercial." },
+      { name: "Castaño", group: "Frutos secos", desc: "Arbol productor de castañas, cultivado en zonas templadas y montañosas." },
+      { name: "Nuez pecan", group: "Frutos secos", desc: "Frutal de nuez adaptado a climas calidos, usado en reposteria y aceites." },
+      { name: "Berenjena", group: "Hortalizas", desc: "Hortaliza de fruto de clima calido, cultivada a campo o bajo cubierta." },
+      { name: "Melon", group: "Hortalizas", desc: "Cucurbitacea de fruto dulce, importante en produccion estival y consumo fresco." },
+      { name: "Sandia", group: "Hortalizas", desc: "Cucurbitacea de fruto grande y acuoso, de alta demanda en climas calidos." },
+      { name: "Apio", group: "Hortalizas", desc: "Hortaliza de tallo y hoja, cultivada en ambientes frescos y con buena humedad." },
+      { name: "Puerro", group: "Hortalizas", desc: "Hortaliza de la familia de las alliaceas, usada como condimento y verdura." },
+      { name: "Acelga", group: "Hortalizas", desc: "Hortaliza de hoja de ciclo corto, resistente y usada en consumo fresco o cocido." },
+      { name: "Rucula", group: "Hortalizas", desc: "Hortaliza de hoja de sabor intenso, comun en ensaladas y produccion intensiva." },
+      { name: "Radicheta / Achicoria", group: "Hortalizas", desc: "Hortaliza de hoja amarga, usada en ensaladas, pastoreo y sistemas mixtos." },
+      { name: "Escarola", group: "Hortalizas", desc: "Hortaliza de hoja de clima fresco, utilizada principalmente en consumo fresco." },
+      { name: "Coliflor", group: "Hortalizas", desc: "Crucifera cultivada por su inflorescencia compacta, requiere manejo de temperatura." },
+      { name: "Nabo", group: "Raices y tuberculos", desc: "Raiz comestible y forrajera, usada tambien como cultivo de cobertura." },
+      { name: "Rabanito", group: "Raices y tuberculos", desc: "Raiz de ciclo muy corto, comun en huertas y produccion intensiva." },
+      { name: "Remolacha de mesa", group: "Raices y tuberculos", desc: "Raiz comestible rica en pigmentos, consumida fresca, cocida o procesada." },
+      { name: "Jengibre", group: "Aromaticas y especias", desc: "Rizoma tropical usado como especia, medicina natural, infusion y producto industrial." },
+      { name: "Curcuma", group: "Aromaticas y especias", desc: "Rizoma tropical de color amarillo, usado como especia, colorante y suplemento." },
+      { name: "Pimienta negra", group: "Aromaticas y especias", desc: "Trepadora tropical cultivada por sus granos aromaticos y picantes." },
+      { name: "Canela", group: "Aromaticas y especias", desc: "Arbol tropical del que se aprovecha la corteza como especia aromatica." },
+      { name: "Clavo de olor", group: "Aromaticas y especias", desc: "Arbol tropical cultivado por sus botones florales secos de aroma intenso." },
+      { name: "Vainilla", group: "Aromaticas y especias", desc: "Orquidea tropical cultivada por vainas aromaticas usadas en alimentos y perfumes." },
+      { name: "Comino", group: "Aromaticas y especias", desc: "Hierba anual de semillas aromaticas, usada como condimento y en mezclas de especias." },
+      { name: "Coriandro / Cilantro", group: "Aromaticas y especias", desc: "Cultivo aromatico de hojas y semillas, usado en gastronomia y aceites esenciales." },
+      { name: "Hinojo", group: "Aromaticas y especias", desc: "Planta aromatica usada por semillas, hojas y bulbos en alimentos e infusiones." },
+      { name: "Anis", group: "Aromaticas y especias", desc: "Hierba aromatica cultivada por sus semillas dulces para infusiones y licores." },
+      { name: "Mostaza", group: "Aromaticas y especias", desc: "Crucifera cultivada por sus semillas condimentarias y por su uso como cobertura." },
+      { name: "Albahaca", group: "Aromaticas y especias", desc: "Hierba aromatica de clima calido, usada fresca, seca y para aceites esenciales." },
+      { name: "Menta", group: "Aromaticas y especias", desc: "Aromatica perenne usada en infusiones, alimentos, aceites y productos medicinales." },
+      { name: "Romero", group: "Aromaticas y especias", desc: "Arbusto aromatico mediterraneo, tolerante a sequia y usado como condimento." },
+      { name: "Oregano", group: "Aromaticas y especias", desc: "Planta aromatica perenne, usada seca o fresca como condimento." },
+      { name: "Tomillo", group: "Aromaticas y especias", desc: "Aromatica rustica de clima seco, valorada por hojas, aceites y uso culinario." },
+      { name: "Lavanda", group: "Aromaticas y especias", desc: "Aromatica mediterranea usada para aceites esenciales, perfumes y flores secas." },
+      { name: "Kenaf", group: "Fibras", desc: "Cultivo fibroso anual usado en papel, textiles, biocompuestos y materiales industriales." },
+      { name: "Yute", group: "Fibras", desc: "Fibra vegetal tropical usada para sacos, cuerdas, telas rusticas y geotextiles." },
+      { name: "Sisal", group: "Fibras", desc: "Agave productor de fibra resistente, usado en cuerdas, tapices y materiales industriales." },
+      { name: "Henequen", group: "Fibras", desc: "Agave fibroso de zonas secas, historicamente usado para cordeleria." },
+      { name: "Cañamo", group: "Fibras", desc: "Cultivo industrial para fibra, semilla, aceite, bioconstruccion y biomateriales." },
+      { name: "Agave", group: "Industriales", desc: "Cultivo de zonas aridas usado para fibras, bebidas, jarabes y paisajismo productivo." },
+      { name: "Stevia", group: "Industriales", desc: "Planta cultivada por hojas con compuestos dulces de bajo aporte calorico." },
+      { name: "Lupulo", group: "Industriales", desc: "Trepadora perenne cultivada por conos usados en cerveza y extractos aromaticos." },
+      { name: "Caucho", group: "Industriales", desc: "Arbol tropical productor de latex natural para neumaticos y productos elasticos." },
+      { name: "Palma aceitera", group: "Oleaginosas", desc: "Palmera tropical de alto rendimiento en aceite, usada en alimentos, industria y biodiesel." },
+      { name: "Coco oleaginoso", group: "Oleaginosas", desc: "Palmera tropical cuyo fruto aporta aceite, fibra, agua y subproductos alimentarios." },
+      { name: "Jatropha", group: "Oleaginosas", desc: "Arbusto oleaginoso usado principalmente para biocombustibles y cercos vivos." },
+      { name: "Ricino / Higuerilla", group: "Oleaginosas", desc: "Oleaginosa industrial cultivada por aceite de ricino y derivados quimicos." },
+      { name: "Niger", group: "Oleaginosas", desc: "Oleaginosa de semillas pequeñas usada para aceite, aves y sistemas de rotacion." },
+      { name: "Caupí / Caupi", group: "Legumbres", desc: "Leguminosa tolerante a calor y sequia, usada como grano, forraje y cobertura." },
+      { name: "Mungo", group: "Legumbres", desc: "Leguminosa de grano pequeño usada para brotes, harinas y consumo seco." },
+      { name: "Azuki", group: "Legumbres", desc: "Legumbre asiatica de grano rojo, usada en dulces, pastas y platos salados." },
+      { name: "Guandul", group: "Legumbres", desc: "Leguminosa arbustiva tropical para grano, forraje, sombra y mejora de suelos." },
+      { name: "Fenogreco", group: "Legumbres", desc: "Leguminosa aromatica usada como semilla, hoja, forraje y abono verde." },
+      { name: "Ñame", group: "Raices y tuberculos", desc: "Tuberculo tropical de alta importancia alimentaria, usado fresco o procesado." },
+      { name: "Oca", group: "Raices y tuberculos", desc: "Tuberculo andino de clima fresco, consumido hervido, asado o deshidratado." },
+      { name: "Ulluco", group: "Raices y tuberculos", desc: "Tuberculo andino de textura firme, usado en platos tradicionales." },
+      { name: "Mashua", group: "Raices y tuberculos", desc: "Tuberculo andino rustico, tolerante a frio y usado en alimentacion local." },
+      { name: "Taro / Malanga", group: "Raices y tuberculos", desc: "Cultivo tropical de cormos comestibles, usado fresco, hervido o en harinas." },
+      { name: "Arracacha", group: "Raices y tuberculos", desc: "Raiz andina de sabor suave, cultivada para consumo fresco y sopas." }
+    ];
+
+    const palette = {
+      "Cereales": ["#b88224", "#577b36"],
+      "Pseudocereales": ["#a05b87", "#35728d"],
+      "Oleaginosas": ["#d9a928", "#6b8f39"],
+      "Legumbres": ["#6f8f42", "#7b4f9f"],
+      "Raices y tuberculos": ["#a85a3a", "#d7a84c"],
+      "Industriales": ["#546d7f", "#2f7a48"],
+      "Hortalizas": ["#2f7a48", "#b8473b"],
+      "Forrajeras": ["#3b8b65", "#86a642"],
+      "Gramineas": ["#4f7f2f", "#b6a23b"],
+      "Leguminosas forrajeras": ["#356f52", "#8b5ca8"],
+      "Frutales": ["#b8473b", "#d9a928"],
+      "Frutales tropicales": ["#21806c", "#e0b132"],
+      "Frutales menores": ["#8e3f68", "#35728d"],
+      "Frutos secos": ["#8c6a3d", "#3b7a57"],
+      "Aromaticas y especias": ["#6e5aa8", "#b8872f"],
+      "Fibras": ["#56737f", "#b7a35d"]
+    };
+
+    const groups = ["Todos", ...Array.from(new Set(crops.map(crop => crop.group)))];
+    const grid = document.getElementById("grid");
+    const filters = document.getElementById("filters");
+    const search = document.getElementById("search");
+    const count = document.getElementById("count");
+    const empty = document.getElementById("empty");
+    let activeGroup = "Todos";
+
+    function normalize(text) {
+      return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function imageQuery(crop) {
+      const queries = {
+        "Trigo": "wheat field",
+        "Maiz": "corn field",
+        "Arroz": "rice field",
+        "Cebada": "barley field",
+        "Avena": "oat field",
+        "Sorgo": "sorghum field",
+        "Centeno": "rye crop",
+        "Mijo": "millet crop",
+        "Quinoa": "quinoa crop",
+        "Amaranto": "amaranth crop",
+        "Soja": "soybean field",
+        "Girasol": "sunflower field",
+        "Colza / Canola": "canola field",
+        "Mani": "peanut crop",
+        "Sesamo": "sesame crop",
+        "Lino": "flax crop",
+        "Cartamo": "safflower crop",
+        "Poroto / Frijol": "bean crop",
+        "Arveja": "pea crop",
+        "Lenteja": "lentil crop",
+        "Garbanzo": "chickpea crop",
+        "Haba": "fava bean crop",
+        "Altramuz": "lupin crop",
+        "Papa": "potato crop",
+        "Batata / Camote": "sweet potato crop",
+        "Yuca / Mandioca": "cassava crop",
+        "Remolacha azucarera": "sugar beet crop",
+        "Algodon": "cotton field",
+        "Cana de azucar": "sugarcane field",
+        "Tabaco": "tobacco crop",
+        "Cafe": "coffee plantation",
+        "Cacao": "cacao plantation",
+        "Te": "tea plantation",
+        "Yerba mate": "yerba mate plantation",
+        "Tomate": "tomato crop",
+        "Pimiento": "pepper crop",
+        "Cebolla": "onion field",
+        "Ajo": "garlic crop",
+        "Zanahoria": "carrot crop",
+        "Lechuga": "lettuce crop",
+        "Espinaca": "spinach crop",
+        "Repollo": "cabbage crop",
+        "Brocoli": "broccoli crop",
+        "Pepino": "cucumber crop",
+        "Zapallo / Calabaza": "pumpkin crop",
+        "Alfalfa": "alfalfa field",
+        "Trebol": "clover field",
+        "Ryegrass": "ryegrass pasture",
+        "Festuca": "fescue pasture",
+        "Pasto elefante": "elephant grass",
+        "Ryegrass anual": "annual ryegrass pasture",
+        "Ryegrass perenne": "perennial ryegrass pasture",
+        "Festuca alta": "tall fescue pasture",
+        "Cebadilla criolla": "bromus catharticus pasture",
+        "Bromo": "brome grass pasture",
+        "Timothy": "timothy grass hay field",
+        "Poa de los prados": "kentucky bluegrass pasture",
+        "Agropiro alargado": "tall wheatgrass pasture",
+        "Agropiro criollo": "crested wheatgrass pasture",
+        "Pasto lloron": "weeping lovegrass pasture",
+        "Estrella africana": "star grass pasture",
+        "Pasto pangola": "pangola grass pasture",
+        "Pasto bahia": "bahiagrass pasture",
+        "Paspalum dilatatum": "dallisgrass pasture",
+        "Paspalum notatum": "bahiagrass pasture",
+        "Brachiaria brizantha": "brachiaria brizantha pasture",
+        "Brachiaria decumbens": "brachiaria decumbens pasture",
+        "Brachiaria humidicola": "humidicola pasture",
+        "Brachiaria ruziziensis": "brachiaria ruziziensis pasture",
+        "Panicum maximum": "panicum maximum pasture",
+        "Mombaza": "mombasa guinea grass pasture",
+        "Tanzania": "tanzania guinea grass pasture",
+        "Gatton panic": "gatton panic grass pasture",
+        "Bermuda grass": "bermuda grass pasture",
+        "Grama rhodes": "rhodes grass pasture",
+        "Pasto ovillo": "orchard grass pasture",
+        "Falaris": "phalaris grass pasture",
+        "Agropiro": "wheatgrass pasture",
+        "Setaria": "setaria grass pasture",
+        "Digitaria": "digit grass pasture",
+        "Pasto miel": "paspalum dilatatum pasture",
+        "Kikuyo": "kikuyu grass pasture",
+        "King grass": "king grass forage",
+        "Maralfalfa": "maralfalfa forage grass",
+        "Guinea grass": "guinea grass pasture",
+        "Guatemala grass": "guatemala grass forage",
+        "Maiz forrajero": "forage corn silage field",
+        "Sorgo forrajero": "forage sorghum field",
+        "Avena forrajera": "forage oats field",
+        "Cebada forrajera": "forage barley field",
+        "Triticale forrajero": "triticale forage field",
+        "Moha": "foxtail millet hay field",
+        "Mijo perla": "pearl millet forage field",
+        "Teff": "teff hay field",
+        "Tripsacum": "gamagrass forage",
+        "Trebol rojo": "red clover field",
+        "Trebol blanco": "white clover pasture",
+        "Trebol subterraneo": "subterranean clover pasture",
+        "Lotus corniculatus": "birdsfoot trefoil pasture",
+        "Lotus tenuis": "lotus tenuis pasture",
+        "Vicia": "vetch cover crop",
+        "Melilotus": "sweet clover field",
+        "Esparceta": "sainfoin field",
+        "Serradella": "serradella pasture",
+        "Vid": "vineyard grapes",
+        "Manzano": "apple orchard",
+        "Peral": "pear orchard",
+        "Duraznero": "peach orchard",
+        "Citrus": "citrus orchard",
+        "Banano": "banana plantation",
+        "Palta / Aguacate": "avocado orchard",
+        "Olivo": "olive grove"
+      };
+
+      return queries[crop.name] || `${crop.name} agriculture`;
+    }
+
+    const imageCache = new Map();
+
+    function wikiTitle(crop) {
+      const titles = {
+        "Trigo": "Trigo",
+        "Maiz": "Maíz",
+        "Arroz": "Arroz",
+        "Cebada": "Cebada",
+        "Avena": "Avena",
+        "Sorgo": "Sorgo",
+        "Centeno": "Centeno",
+        "Mijo": "Mijo",
+        "Quinoa": "Chenopodium_quinoa",
+        "Amaranto": "Amaranthus",
+        "Soja": "Glycine_max",
+        "Girasol": "Helianthus_annuus",
+        "Colza / Canola": "Brassica_napus",
+        "Mani": "Arachis_hypogaea",
+        "Sesamo": "Sesamum_indicum",
+        "Lino": "Linum_usitatissimum",
+        "Cartamo": "Carthamus_tinctorius",
+        "Poroto / Frijol": "Phaseolus_vulgaris",
+        "Arveja": "Pisum_sativum",
+        "Lenteja": "Lens_culinaris",
+        "Garbanzo": "Cicer_arietinum",
+        "Haba": "Vicia_faba",
+        "Altramuz": "Lupinus",
+        "Papa": "Solanum_tuberosum",
+        "Batata / Camote": "Ipomoea_batatas",
+        "Yuca / Mandioca": "Manihot_esculenta",
+        "Remolacha azucarera": "Beta_vulgaris",
+        "Algodon": "Gossypium",
+        "Cana de azucar": "Saccharum_officinarum",
+        "Tabaco": "Nicotiana_tabacum",
+        "Cafe": "Coffea",
+        "Cacao": "Theobroma_cacao",
+        "Te": "Camellia_sinensis",
+        "Yerba mate": "Ilex_paraguariensis",
+        "Tomate": "Solanum_lycopersicum",
+        "Pimiento": "Capsicum_annuum",
+        "Cebolla": "Allium_cepa",
+        "Ajo": "Allium_sativum",
+        "Zanahoria": "Daucus_carota",
+        "Lechuga": "Lactuca_sativa",
+        "Espinaca": "Spinacia_oleracea",
+        "Repollo": "Brassica_oleracea_var._capitata",
+        "Brocoli": "Brassica_oleracea_var._italica",
+        "Pepino": "Cucumis_sativus",
+        "Zapallo / Calabaza": "Cucurbita",
+        "Alfalfa": "Medicago_sativa",
+        "Trebol rojo": "Trifolium_pratense",
+        "Trebol blanco": "Trifolium_repens",
+        "Trebol subterraneo": "Trifolium_subterraneum",
+        "Lotus corniculatus": "Lotus_corniculatus",
+        "Lotus tenuis": "Lotus_tenuis",
+        "Vicia": "Vicia",
+        "Melilotus": "Melilotus",
+        "Esparceta": "Onobrychis_viciifolia",
+        "Serradella": "Ornithopus_sativus",
+        "Ryegrass": "Lolium",
+        "Ryegrass anual": "Lolium_multiflorum",
+        "Ryegrass perenne": "Lolium_perenne",
+        "Festuca": "Festuca",
+        "Festuca alta": "Festuca_arundinacea",
+        "Pasto ovillo": "Dactylis_glomerata",
+        "Falaris": "Phalaris_aquatica",
+        "Cebadilla criolla": "Bromus_catharticus",
+        "Bromo": "Bromus",
+        "Timothy": "Phleum_pratense",
+        "Poa de los prados": "Poa_pratensis",
+        "Agropiro": "Agropyron",
+        "Agropiro alargado": "Thinopyrum_ponticum",
+        "Agropiro criollo": "Agropyron_cristatum",
+        "Pasto lloron": "Eragrostis_curvula",
+        "Bermuda grass": "Cynodon_dactylon",
+        "Estrella africana": "Cynodon_plectostachyus",
+        "Grama rhodes": "Chloris_gayana",
+        "Kikuyo": "Pennisetum_clandestinum",
+        "Pasto pangola": "Digitaria_eriantha",
+        "Pasto bahia": "Paspalum_notatum",
+        "Paspalum dilatatum": "Paspalum_dilatatum",
+        "Paspalum notatum": "Paspalum_notatum",
+        "Brachiaria brizantha": "Urochloa_brizantha",
+        "Brachiaria decumbens": "Urochloa_decumbens",
+        "Brachiaria humidicola": "Urochloa_humidicola",
+        "Brachiaria ruziziensis": "Urochloa_ruziziensis",
+        "Panicum maximum": "Megathyrsus_maximus",
+        "Mombaza": "Megathyrsus_maximus",
+        "Tanzania": "Megathyrsus_maximus",
+        "Gatton panic": "Megathyrsus_maximus",
+        "Setaria": "Setaria",
+        "Digitaria": "Digitaria",
+        "Pasto miel": "Paspalum_dilatatum",
+        "Pasto elefante": "Cenchrus_purpureus",
+        "King grass": "Cenchrus_purpureus",
+        "Maralfalfa": "Cenchrus_purpureus",
+        "Guinea grass": "Megathyrsus_maximus",
+        "Guatemala grass": "Tripsacum_laxum",
+        "Maiz forrajero": "Maíz",
+        "Sorgo forrajero": "Sorghum_bicolor",
+        "Avena forrajera": "Avena_sativa",
+        "Cebada forrajera": "Hordeum_vulgare",
+        "Triticale forrajero": "Triticale",
+        "Moha": "Setaria_italica",
+        "Mijo perla": "Pennisetum_glaucum",
+        "Teff": "Eragrostis_tef",
+        "Tripsacum": "Tripsacum",
+        "Vid": "Vitis_vinifera",
+        "Manzano": "Malus_domestica",
+        "Peral": "Pyrus_communis",
+        "Duraznero": "Prunus_persica",
+        "Citrus": "Citrus",
+        "Banano": "Musa_×_paradisiaca",
+        "Palta / Aguacate": "Persea_americana",
+        "Olivo": "Olea_europaea",
+        "Ciruela": "Prunus_domestica",
+        "Cerezo": "Prunus_avium",
+        "Damasco / Albaricoque": "Prunus_armeniaca",
+        "Membrillo": "Cydonia_oblonga",
+        "Granado": "Punica_granatum",
+        "Higuera": "Ficus_carica",
+        "Kiwi": "Actinidia_deliciosa",
+        "Mango": "Mangifera_indica",
+        "Papaya": "Carica_papaya",
+        "Anana / Piña": "Ananas_comosus",
+        "Maracuya": "Passiflora_edulis",
+        "Guayaba": "Psidium_guajava",
+        "Litchi": "Litchi_chinensis",
+        "Coco": "Cocos_nucifera",
+        "Datil": "Phoenix_dactylifera",
+        "Frutilla / Fresa": "Fragaria_×_ananassa",
+        "Arandano": "Vaccinium_corymbosum",
+        "Frambuesa": "Rubus_idaeus",
+        "Mora": "Rubus_fruticosus",
+        "Grosella": "Ribes_rubrum",
+        "Almendro": "Prunus_dulcis",
+        "Nogal": "Juglans_regia",
+        "Avellano": "Corylus_avellana",
+        "Pistacho": "Pistacia_vera",
+        "Castaño": "Castanea_sativa",
+        "Nuez pecan": "Carya_illinoinensis",
+        "Berenjena": "Solanum_melongena",
+        "Melon": "Cucumis_melo",
+        "Sandia": "Citrullus_lanatus",
+        "Apio": "Apium_graveolens",
+        "Puerro": "Allium_ampeloprasum",
+        "Acelga": "Beta_vulgaris_var._cicla",
+        "Rucula": "Eruca_vesicaria",
+        "Radicheta / Achicoria": "Cichorium_intybus",
+        "Escarola": "Cichorium_endivia",
+        "Coliflor": "Brassica_oleracea_var._botrytis",
+        "Nabo": "Brassica_rapa_subsp._rapa",
+        "Rabanito": "Raphanus_sativus",
+        "Remolacha de mesa": "Beta_vulgaris",
+        "Jengibre": "Zingiber_officinale",
+        "Curcuma": "Curcuma_longa",
+        "Pimienta negra": "Piper_nigrum",
+        "Canela": "Cinnamomum_verum",
+        "Clavo de olor": "Syzygium_aromaticum",
+        "Vainilla": "Vanilla_planifolia",
+        "Comino": "Cuminum_cyminum",
+        "Coriandro / Cilantro": "Coriandrum_sativum",
+        "Hinojo": "Foeniculum_vulgare",
+        "Anis": "Pimpinella_anisum",
+        "Mostaza": "Sinapis_alba",
+        "Albahaca": "Ocimum_basilicum",
+        "Menta": "Mentha",
+        "Romero": "Salvia_rosmarinus",
+        "Oregano": "Origanum_vulgare",
+        "Tomillo": "Thymus_vulgaris",
+        "Lavanda": "Lavandula",
+        "Kenaf": "Hibiscus_cannabinus",
+        "Yute": "Corchorus",
+        "Sisal": "Agave_sisalana",
+        "Henequen": "Agave_fourcroydes",
+        "Cañamo": "Cannabis_sativa",
+        "Agave": "Agave",
+        "Stevia": "Stevia_rebaudiana",
+        "Lupulo": "Humulus_lupulus",
+        "Caucho": "Hevea_brasiliensis",
+        "Palma aceitera": "Elaeis_guineensis",
+        "Coco oleaginoso": "Cocos_nucifera",
+        "Jatropha": "Jatropha_curcas",
+        "Ricino / Higuerilla": "Ricinus_communis",
+        "Niger": "Guizotia_abyssinica",
+        "Caupí / Caupi": "Vigna_unguiculata",
+        "Mungo": "Vigna_radiata",
+        "Azuki": "Vigna_angularis",
+        "Guandul": "Cajanus_cajan",
+        "Fenogreco": "Trigonella_foenum-graecum",
+        "Ñame": "Dioscorea",
+        "Oca": "Oxalis_tuberosa",
+        "Ulluco": "Ullucus_tuberosus",
+        "Mashua": "Tropaeolum_tuberosum",
+        "Taro / Malanga": "Colocasia_esculenta",
+        "Arracacha": "Arracacia_xanthorrhiza"
+      };
+
+      return titles[crop.name] || crop.name.split("/")[0].trim().replace(/\s+/g, "_");
+    }
+
+    async function wikipediaImage(crop, size = 900) {
+      crop;
+      size;
+      return "";
+    }
+
+    async function loadCropImages(results) {
+      results;
+    }
+
+    function fallbackImage(crop, width, height) {
+      const [c1, c2] = palette[crop.group] || ["#2f7a48", "#35728d"];
+      const title = crop.name.replace(/&/g, "y").replace(/[<>]/g, "");
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="${c1}"/>
+              <stop offset="1" stop-color="${c2}"/>
+            </linearGradient>
+            <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#6f8f42"/>
+              <stop offset="1" stop-color="#263d22"/>
+            </linearGradient>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#sky)"/>
+          <circle cx="${width * .78}" cy="${height * .22}" r="${Math.max(26, width * .06)}" fill="rgba(255,255,255,.35)"/>
+          <path d="M0 ${height * .62} C ${width * .22} ${height * .52}, ${width * .38} ${height * .72}, ${width} ${height * .55} L ${width} ${height} L 0 ${height} Z" fill="url(#soil)"/>
+          <g stroke="rgba(255,255,255,.45)" stroke-width="${Math.max(3, width * .008)}" fill="none">
+            <path d="M${width * .12} ${height} C ${width * .22} ${height * .78}, ${width * .26} ${height * .66}, ${width * .35} ${height * .56}"/>
+            <path d="M${width * .34} ${height} C ${width * .42} ${height * .78}, ${width * .48} ${height * .65}, ${width * .58} ${height * .54}"/>
+            <path d="M${width * .58} ${height} C ${width * .62} ${height * .8}, ${width * .7} ${height * .66}, ${width * .86} ${height * .52}"/>
+          </g>
+          <g fill="rgba(255,255,255,.82)">
+            <ellipse cx="${width * .24}" cy="${height * .47}" rx="${width * .035}" ry="${height * .09}" transform="rotate(-28 ${width * .24} ${height * .47})"/>
+            <ellipse cx="${width * .31}" cy="${height * .43}" rx="${width * .035}" ry="${height * .09}" transform="rotate(28 ${width * .31} ${height * .43})"/>
+            <ellipse cx="${width * .68}" cy="${height * .43}" rx="${width * .035}" ry="${height * .09}" transform="rotate(-30 ${width * .68} ${height * .43})"/>
+            <ellipse cx="${width * .76}" cy="${height * .39}" rx="${width * .035}" ry="${height * .09}" transform="rotate(30 ${width * .76} ${height * .39})"/>
+          </g>
+          <rect x="${width * .06}" y="${height * .08}" width="${width * .58}" height="${height * .16}" rx="${height * .04}" fill="rgba(0,0,0,.28)"/>
+          <text x="${width * .09}" y="${height * .18}" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="${Math.max(18, width * .055)}" font-weight="700">${title}</text>
+        </svg>`;
+
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    }
+
+    function sowingInfo(crop) {
+      const name = normalize(crop.name);
+      const winter = ["trigo", "cebada", "avena", "centeno", "colza", "canola", "arveja", "lenteja", "garbanzo", "haba", "vicia", "ajo", "cebolla", "brocoli", "coliflor", "repollo", "espinaca", "lechuga", "alfalfa", "trebol", "ryegrass", "festuca", "falaris", "agropiro"];
+      const spring = ["maiz", "soja", "girasol", "sorgo", "arroz", "mani", "algodon", "poroto", "frijol", "sesamo", "cartamo", "tomate", "pimiento", "pepino", "zapallo", "calabaza", "melon", "sandia", "berenjena"];
+      const summer = ["moha", "mijo", "caupi", "guandul", "yuca", "mandioca", "batata", "camote", "pasto elefante", "panicum", "brachiaria", "setaria", "digitaria", "kikuyo", "pasto miel"];
+      const perennial = ["vid", "manzano", "peral", "duraznero", "citrus", "banano", "palta", "olivo", "mango", "papaya", "anana", "coco", "datil", "nogal", "almendro", "pistacho", "avellano", "cerezo", "higuera", "granado", "kiwi"];
+
+      if (perennial.some(item => name.includes(item))) {
+        return { season: "Plantacion perenne", date: "Otono o primavera, evitando heladas fuertes y calor extremo." };
+      }
+      if (winter.some(item => name.includes(item))) {
+        return { season: "Otono - invierno", date: "Marzo a agosto, segun zona, humedad del suelo y variedad." };
+      }
+      if (spring.some(item => name.includes(item))) {
+        return { season: "Primavera", date: "Septiembre a diciembre, cuando sube la temperatura del suelo." };
+      }
+      if (summer.some(item => name.includes(item))) {
+        return { season: "Primavera - verano", date: "Octubre a febrero, con humedad disponible o riego." };
+      }
+      if (crop.group === "Hortalizas") {
+        return { season: "Variable por especie", date: "Muchas hortalizas se siembran escalonadas; ajustar al clima local." };
+      }
+      if (crop.group.includes("Frutales") || crop.group === "Frutos secos") {
+        return { season: "Plantacion perenne", date: "Otono o primavera, segun especie, clima y disponibilidad de plantas." };
+      }
+      return { season: "Segun zona productiva", date: "Consultar calendario local; depende de temperatura, lluvias y destino del cultivo." };
+    }
+
+    function cropDetails(crop) {
+      const info = {
+        "Cereales": ["Grano alimenticio y forrajero", "Siembra extensiva en lotes agricolas", "Requiere buena implantacion, fertilidad balanceada y control de malezas."],
+        "Pseudocereales": ["Grano de alto valor nutricional", "Ambientes templados, andinos o de nicho", "Suele valorarse por proteina, minerales y adaptacion a condiciones dificiles."],
+        "Oleaginosas": ["Produccion de aceite y harina", "Rotaciones agricolas y uso industrial", "Conviene cuidar sanidad, nutricion y momento de cosecha para proteger calidad de semilla."],
+        "Legumbres": ["Grano proteico y fijacion de nitrogeno", "Rotaciones, consumo humano y alimento animal", "Aportan nitrogeno al sistema y ayudan a diversificar los lotes."],
+        "Raices y tuberculos": ["Organos subterraneos comestibles", "Produccion alimentaria fresca o industrial", "Necesitan suelos sueltos, buen drenaje y manejo cuidadoso de cosecha."],
+        "Industriales": ["Materia prima para industria", "Procesamiento, bebidas, fibras, energia o extractos", "Su manejo depende mucho del destino comercial y de la calidad requerida."],
+        "Hortalizas": ["Consumo fresco o procesado", "Huerta, produccion intensiva o bajo cubierta", "Requieren manejo fino de riego, nutricion, plagas y cosecha escalonada."],
+        "Forrajeras": ["Alimentacion animal", "Pastoreo, heno, silaje o corte", "La productividad depende del rebrote, la fertilidad y el manejo de carga animal."],
+        "Gramineas": ["Forraje energetico y fibra", "Pasturas, verdeos, corte o silaje", "Son claves para producir volumen de pasto y proteger el suelo."],
+        "Leguminosas forrajeras": ["Forraje proteico y fijacion de nitrogeno", "Pasturas mixtas, heno, silaje o cobertura", "Mejoran la calidad de la dieta y reducen necesidad de nitrogeno externo."],
+        "Frutales": ["Fruta fresca o procesada", "Montes frutales permanentes", "Requieren poda, sanidad, riego y manejo de floracion y cosecha."],
+        "Frutales tropicales": ["Fruta tropical fresca o industrial", "Zonas calidas y libres de heladas fuertes", "Necesitan buen manejo de agua, nutricion y proteccion frente a vientos o frio."],
+        "Frutales menores": ["Berries y frutas finas", "Produccion intensiva de alto valor", "Demandan cosecha delicada, sanidad precisa y buen manejo poscosecha."],
+        "Frutos secos": ["Nueces y semillas comestibles", "Plantaciones permanentes", "Tienen alta inversion inicial y valor en cosecha, secado y almacenamiento."],
+        "Aromaticas y especias": ["Hojas, semillas, flores, cortezas o rizomas aromaticos", "Condimentos, infusiones, aceites y extractos", "La calidad depende del momento de cosecha, secado y conservacion del aroma."],
+        "Fibras": ["Fibra vegetal", "Textiles, cuerdas, papel o biomateriales", "El valor esta en la calidad, longitud y procesamiento de la fibra."]
+      };
+      const base = info[crop.group] || ["Produccion agricola", "Sistema productivo segun clima y mercado", "Conviene ajustar manejo a suelo, agua, sanidad y destino comercial."];
+      return {
+        use: base[0],
+        system: base[1],
+        management: base[2],
+        note: `${crop.name} pertenece al grupo ${crop.group}. ${crop.desc} Su rendimiento y calidad dependen del clima, el suelo, la variedad elegida, el manejo del agua y el control sanitario.`
+      };
+    }
+
+    function openCrop(crop) {
+      const details = cropDetails(crop);
+      const sowing = sowingInfo(crop);
+      const modal = document.getElementById("cropModal");
+      const modalImage = document.getElementById("modalImage");
+      const modalHero = document.getElementById("modalHero");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalSummary = document.getElementById("modalSummary");
+      const modalBody = document.getElementById("modalBody");
+      const [c1, c2] = palette[crop.group] || ["#2f7a48", "#35728d"];
+      const cardImage = Array.from(document.querySelectorAll("[data-crop][data-kind='hero']")).find(image => image.dataset.crop === crop.name);
+
+      modalHero.style.background = `linear-gradient(135deg, ${c1}, ${c2})`;
+      modalImage.onerror = () => {
+        modalImage.onerror = null;
+        modalImage.src = fallbackImage(crop, 1200, 760);
+      };
+      modalImage.src = cardImage?.src || fallbackImage(crop, 1200, 760);
+      modalImage.alt = `Imagen de ${crop.name}`;
+      modalTitle.textContent = crop.name;
+      modalSummary.textContent = crop.desc;
+      modalBody.innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-item"><strong>Grupo</strong><span>${crop.group}</span></div>
+          <div class="detail-item"><strong>Uso principal</strong><span>${details.use}</span></div>
+          <div class="detail-item"><strong>Sistema</strong><span>${details.system}</span></div>
+          <div class="detail-item"><strong>Epoca</strong><span>${sowing.season}</span></div>
+          <div class="detail-item"><strong>Fecha de siembra</strong><span>${sowing.date}</span></div>
+        </div>
+        <div class="modal-section">
+          <h3>Manejo general</h3>
+          <p>${details.management}</p>
+        </div>
+        <div class="modal-section">
+          <h3>Informacion agronomica</h3>
+          <p>${details.note}</p>
+        </div>
+      `;
+      modal.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+      document.getElementById("modalClose").focus();
+    }
+
+    function closeCrop() {
+      document.getElementById("cropModal").classList.remove("is-open");
+      document.body.style.overflow = "";
+    }
+
+    function renderFilters() {
+      filters.innerHTML = groups.map(group => `
+        <button class="filter" type="button" aria-pressed="${group === activeGroup}" data-group="${group}">
+          ${group}
+        </button>
+      `).join("");
+    }
+
+    function renderCrops() {
+      const query = normalize(search.value.trim());
+      const results = crops.filter(crop => {
+        const matchesGroup = activeGroup === "Todos" || crop.group === activeGroup;
+        const haystack = normalize(`${crop.name} ${crop.group} ${crop.desc}`);
+        return matchesGroup && (!query || haystack.includes(query));
+      });
+
+      grid.innerHTML = results.map(crop => {
+      const [c1, c2] = palette[crop.group] || ["#2f7a48", "#35728d"];
+      const heroFallback = fallbackImage(crop, 1200, 760);
+      const thumbFallback = fallbackImage(crop, 320, 320);
+        const index = crops.indexOf(crop);
+        return `
+          <article class="card" role="button" tabindex="0" data-index="${index}" aria-label="Abrir informacion de ${crop.name}">
+            <div class="crop-art" style="--c1:${c1};--c2:${c2}">
+              <img src="${heroFallback}" data-fallback="${heroFallback}" data-crop="${crop.name}" data-kind="hero" alt="Imagen de ${crop.name}" loading="lazy" onerror="this.onerror=null;this.src=this.dataset.fallback">
+              <small>${crop.group}</small>
+            </div>
+            <div class="content">
+              <div class="crop-title">
+                <img class="title-image" src="${thumbFallback}" data-fallback="${thumbFallback}" data-crop="${crop.name}" data-kind="thumb" alt="Imagen pequeña de ${crop.name}" loading="lazy" onerror="this.onerror=null;this.src=this.dataset.fallback">
+                <div class="title-text">
+                  <h2>${crop.name}</h2>
+                  <small>${crop.group}</small>
+                </div>
+              </div>
+              <p>${crop.desc}</p>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      count.textContent = `${results.length} ${results.length === 1 ? "cultivo" : "cultivos"}`;
+      empty.style.display = results.length ? "none" : "block";
+    }
+
+    grid.addEventListener("click", event => {
+      const card = event.target.closest(".card[data-index]");
+      if (!card) return;
+      openCrop(crops[Number(card.dataset.index)]);
+    });
+
+    grid.addEventListener("keydown", event => {
+      const card = event.target.closest(".card[data-index]");
+      if (!card || (event.key !== "Enter" && event.key !== " ")) return;
+      event.preventDefault();
+      openCrop(crops[Number(card.dataset.index)]);
+    });
+
+    filters.addEventListener("click", event => {
+      const button = event.target.closest("button[data-group]");
+      if (!button) return;
+      activeGroup = button.dataset.group;
+      renderFilters();
+      renderCrops();
+    });
+
+    search.addEventListener("input", renderCrops);
+    document.getElementById("modalClose").addEventListener("click", closeCrop);
+    document.getElementById("cropModal").addEventListener("click", event => {
+      if (event.target.id === "cropModal") closeCrop();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeCrop();
+    });
+
+    let installPrompt = null;
+    const installButton = document.getElementById("installButton");
+
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      installPrompt = event;
+      installButton.classList.add("is-visible");
+    });
+
+    installButton.addEventListener("click", async () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      installPrompt = null;
+      installButton.classList.remove("is-visible");
+    });
+
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      navigator.serviceWorker.register("./service-worker.js");
+    }
+
+    renderFilters();
+    renderCrops();
+  </script>
+</body>
+</html>

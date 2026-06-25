@@ -1,0 +1,19 @@
+{
+  "name": "Catalogo de Cultivos de Agronomia",
+  "short_name": "Cultivos",
+  "description": "Aplicacion de consulta de cultivos, fechas de siembra e informacion agronomica.",
+  "start_url": "./cultivos-agronomia.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f2e9",
+  "theme_color": "#2f7a48",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
